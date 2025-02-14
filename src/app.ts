@@ -13,12 +13,12 @@ import * as microsoftTeams from "@microsoft/teams-js";
 
 
 
-export const renderPage = (displayName, renderBasicPage = false) => {
+export const renderPage = (displayName, isConfigPage = false, renderBasicPage = false) => {
   console.log(`>>>>> Test tab app on ${window.location.href}`);
   try {
     microsoftTeams.app.initialize()
     .then(() => {
-      registerAppCachingHandlers();
+      registerAppCachingHandlers(displayName);
 
       // This tests a specific scenario where the tab is reloaded on unload
       handleReloadOnUnload(microsoftTeams.sendCustomMessage);
@@ -32,10 +32,14 @@ export const renderPage = (displayName, renderBasicPage = false) => {
         heading.innerText = displayName;
       }
     }
-    if (renderBasicPage) {
-      initializeBaseModulesForVisualTests();
+    if (isConfigPage) {
+     renderConfigElements();
     } else {
-      initializeAppModules();
+      if (renderBasicPage) {
+        initializeBaseModulesForVisualTests();
+      } else {
+        initializeAppModules();
+      }
     }
     microsoftTeams.app.notifySuccess();
   } catch (err) {
@@ -47,14 +51,67 @@ export const renderPage = (displayName, renderBasicPage = false) => {
   }
 };
 
-const registerAppCachingHandlers = () => {
+const renderConfigElements = () => {
+  addModule({
+    name: "settings.registerOnSaveHandler",
+    initializedRequired: true,
+    hasOutput: true,
+    action: function (output) {
+      microsoftTeams.pages.config.registerOnSaveHandler(function (saveEvent) {
+        (window as any).saveEvent = saveEvent;
+        const configUrl = window.location.href;
+        microsoftTeams.pages.config.setConfig({
+          websiteUrl: configUrl,
+          contentUrl: configUrl,
+          entityId: "tabconfig",
+          suggestedDisplayName: "Test Tab RegisterOnSave",
+        }).then(() => {
+          output("SaveEvent recieved");
+        });
+      });
+    },
+  });
+  
+  addModule({
+    name: "settings.setSettings",
+    initializedRequired: true,
+    inputs: [
+      {
+        type: "object",
+        name: "settings",
+        defaultValue:
+          '{"contentUrl": "https://teams-test-tab.azurewebsites.net/page1?displayName=ABC", "entityId": "someEntity", "websiteUrl": "https://teams-test-tab.azurewebsites.net/"}',
+      },
+    ],
+    hasOutput: true,
+    action: function (settings, output) {
+      microsoftTeams.pages.config.setConfig(settings);
+    },
+  });
+
+  addModule({
+    name: "settings.setValidityState",
+    initializedRequired: true,
+    inputs: [
+      {
+        type: "boolean",
+        name: "validityState",
+      },
+    ],
+    action: function (validityState) {
+      microsoftTeams.pages.config.setValidityState(validityState);
+    },
+  });
+}
+
+const registerAppCachingHandlers = (displayName) => {
   microsoftTeams.teamsCore.registerBeforeUnloadHandler((readyToUnload) => {
     const result = beforeUnloadHandler(readyToUnload);
     return result;
   });
 
   microsoftTeams.teamsCore.registerOnLoadHandler((data) => {
-    loadHandler(data);
+    loadHandler(data, displayName);
   });
 };
 
@@ -76,13 +133,17 @@ const beforeUnloadHandler = (
 };
 
 const loadHandler = (
-  data: microsoftTeams.LoadContext
+  data: microsoftTeams.LoadContext,
+  displayName: string
 ) => {
   printRecentLocalStoredAppContext();
-  const timeout = 1000;
-  setTimeout(() => {
-    microsoftTeams.app.notifySuccess();
-  }, timeout);
+  if (data.contentUrl) {
+      const params = new URLSearchParams(data.contentUrl);
+    const newPageName = params.get("displayname") || params.get("displayName");
+    if (newPageName !== displayName) {
+      window.location.href = data.contentUrl;
+    }
+  }
 };
 
 const initializeBaseModulesForVisualTests = () => {
