@@ -11,7 +11,7 @@
     "termsOfUseUrl": "https://teams-todolist.azurewebsites.net/termsofuse"
   },
   "name": {
-    "short": "Teams Test Tab"
+    "short": "Configurable Teams Test Tab"
   },
   "description": {
     "short": "Test tabs.",
@@ -22,33 +22,10 @@
     "color": "color.png"
   },
   "accentColor": "#ff6a00",
-  "staticTabs": [
-    {
-      "entityId": "test-tab",
-      "name": "Test Tab",
-      "contentUrl": "https://teams-test-tab.azurewebsites.net",
-      "websiteUrl": "https://teams-test-tab.azurewebsites.net",
-      "scopes": [
-        "personal"
-      ]
-    },
-    {
-      "entityId": "full-screen-tab",
-      "name": "Full Screen Tab",
-      "contentUrl": "https://teams-test-tab.azurewebsites.net",
-      "websiteUrl": "https://teams-test-tab.azurewebsites.net",
-      "scopes": [
-        "personal"
-      ]
-    }
-  ],
   "configurableTabs": [
     {
-      "configurationUrl": "https://teams-test-tab.azurewebsites.net",
-      "scopes": [
-        "team",
-        "groupchat"
-      ],
+      "configurationUrl": "https://1f8321f434a4.ngrok.app?configpage=true",
+      "scopes": ["team", "groupchat"],
       "canUpdateConfiguration": true,
       "context": [
         "channelTab",
@@ -62,18 +39,13 @@
   ],
   "validDomains": [
     "teams-test-tab.azurewebsites.net",
-    "{teamSiteDomain}"
+    "{teamSiteDomain}",
+    "1f8321f434a4.ngrok.app"
   ],
-  "permissions": [
-    "identity",
-    "messageTeamMembers"
-  ],
-  "devicePermissions": [
-    "media",
-    "geolocation"
-  ],
+  "permissions": ["identity", "messageTeamMembers"],
+  "devicePermissions": ["media", "geolocation"],
   "showLoadingIndicator": true,
-  "webApplicationInfo": {  
+  "webApplicationInfo": {
     "id": "00000003-0000-0ff1-ce00-000000000000",
     "resource": "https://{teamSiteDomain}"
   }
